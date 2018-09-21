@@ -13,6 +13,10 @@ func NewVideo(id string, prevVideo *Video) *Video {
 	}
 }
 
+func (v *Video) URL() string {
+	return "https://www.youtube.com/watch?v=" + v.id
+}
+
 func (v *Video) Next() *Video {
 	if v.nextVideo == nil {
 		// TODO: 次のビデオをここでスクレイピングする
@@ -23,9 +27,6 @@ func (v *Video) Next() *Video {
 }
 
 func (v *Video) Prev() *Video {
-	if v.prevVideo == nil {
-		return nil
-	}
 	return v.prevVideo
 }
 
