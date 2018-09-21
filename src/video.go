@@ -13,6 +13,24 @@ func NewVideo(id string, prevVideo *Video) *Video {
 	}
 }
 
+func (v *Video) Next() *Video {
+	if v.nextVideo == nil {
+		// TODO: 次のビデオをここでスクレイピングする
+		// 見つからなければnilを返す
+		v.nextVideo = NewVideo(v.id, v)
+	}
+	return v.nextVideo
+}
+
+func (v *Video) Prev() *Video {
+	if v.prevVideo == nil {
+		return nil
+	}
+	return v.prevVideo
+}
+
+// TODO: 関連動画とかもあるといいかも
+
 type Videos []*Video
 
 func (v Videos) IsEmpty() bool {
