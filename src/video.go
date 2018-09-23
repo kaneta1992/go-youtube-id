@@ -62,25 +62,36 @@ func (v *Video) updateRelatedCache() {
 	}
 }
 
+func (v *Video) alreadyPlayed() bool {
+	video := v
+	for video.prevVideo != nil {
+		if v.id == video.prevVideo.id {
+			return true
+		}
+		video = video.prevVideo
+	}
+	return false
+}
+
 func (v *Video) Next() *Video {
 	v.updateRelatedCache()
-	// TODO: 次の動画をすでに再生したことがある場合は関連動画にする
-	fmt.Println(v.relatedCache.First())
-	return v.relatedCache.First()
+	video := v.relatedCache.First()
+	if video.alreadyPlayed() {
+		video = v.Relate()
+	}
+	fmt.Println(video)
+	return video
 }
 
 func (v *Video) Relate() *Video {
 	v.updateRelatedCache()
 	video := v.relatedCache.Random()
-	fmt.Println(video)
 	return video
 }
 
 func (v *Video) Prev() *Video {
 	return v.prevVideo
 }
-
-// TODO: 関連動画とかもあるといいかも
 
 type Videos []*Video
 

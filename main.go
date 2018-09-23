@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	c := youtube.NewClient("加藤純一")
+	c := youtube.NewClient("加藤純一 栄冠")
 	fmt.Println(c.GetVideos().First())
 	fmt.Println(c.GetVideos().Last())
 	c.GetVideos().First().Next().Next().Next().Next().Next().Next().Next().Next().Next().Next().Next().Next().Next().Next()
