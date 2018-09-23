@@ -9,11 +9,10 @@ import (
 
 type Client struct {
 	service *youtube.Service
-	getMax  int64
 }
 
-func NewClient(key string, max int64) *Client {
-	c := &Client{getMax: max}
+func NewClient(key string) *Client {
+	c := &Client{}
 
 	client := &http.Client{
 		Transport: &transport.APIKey{Key: key},
@@ -28,11 +27,11 @@ func NewClient(key string, max int64) *Client {
 	return c
 }
 
-func (c *Client) GetVideos(query string) Videos {
+func (c *Client) GetVideos(query string, max int64) Videos {
 	videos := Videos{}
 	call := c.service.Search.List("id,snippet").
 		Q(query).
-		MaxResults(c.getMax).
+		MaxResults(max).
 		Type("video")
 	response, err := call.Do()
 	if err != nil {
@@ -42,17 +41,18 @@ func (c *Client) GetVideos(query string) Videos {
 	for _, item := range response.Items {
 		switch item.Id.Kind {
 		case "youtube#video":
-			videos = append(videos, NewVideo(item.Id.VideoId, item.Snippet.Title, nil, c))
+			videos = append(videos, NewVideo(item.Id.VideoId, item.Snippet.Title, query, nil, c))
 		}
 	}
 	return videos
 }
 
-func (c *Client) GetRelatedVideos(v *Video) Videos {
+func (c *Client) GetRelatedVideos(v *Video, max int64) Videos {
 	videos := Videos{}
-	call := c.service.Search.List("id,snippet").
+	call := c.service.Search.List("snippet").
+		RegionCode("JP").
 		RelatedToVideoId(v.id).
-		MaxResults(c.getMax).
+		MaxResults(max).
 		Type("video")
 	response, err := call.Do()
 	if err != nil {
@@ -62,7 +62,7 @@ func (c *Client) GetRelatedVideos(v *Video) Videos {
 	for _, item := range response.Items {
 		switch item.Id.Kind {
 		case "youtube#video":
-			videos = append(videos, NewVideo(item.Id.VideoId, item.Snippet.Title, v, c))
+			videos = append(videos, NewVideo(item.Id.VideoId, item.Snippet.Title, v.keyword, v, c))
 		}
 	}
 	return videos

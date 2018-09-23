@@ -1,17 +1,24 @@
 package youtubeid
 
+import (
+	"fmt"
+	"math/rand"
+)
+
 type Video struct {
 	client    *Client
 	id        string
 	title     string
+	keyword   string
 	prevVideo *Video
 }
 
-func NewVideo(id, title string, prevVideo *Video, c *Client) *Video {
+func NewVideo(id, title, keyword string, prevVideo *Video, c *Client) *Video {
 	return &Video{
 		client:    c,
 		id:        id,
 		title:     title,
+		keyword:   keyword,
 		prevVideo: prevVideo,
 	}
 }
@@ -21,9 +28,8 @@ func (v *Video) URL() string {
 }
 
 func (v *Video) Next() *Video {
-	// TODO: 次のビデオをここでスクレイピングする
-	// 見つからなければnilを返す
-	return NewVideo(v.id, v.title, v, v.client)
+	videos := v.client.GetRelatedVideos(v, 3)
+	return videos.Random()
 }
 
 func (v *Video) Prev() *Video {
@@ -52,10 +58,11 @@ func (v Videos) Last() *Video {
 }
 
 func (v Videos) Random() *Video {
-	// TODO: ランダムにする
 	if v.IsEmpty() {
 		return nil
 	}
-	index := 0
+	index := rand.Intn(len(v))
+
+	fmt.Println(v[index])
 	return v[index]
 }
