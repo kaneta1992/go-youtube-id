@@ -1,14 +1,17 @@
-package youtube
+package youtubeid
 
 type Video struct {
+	client    *Client
 	id        string
+	title     string
 	prevVideo *Video
-	nextVideo *Video
 }
 
-func NewVideo(id string, prevVideo *Video) *Video {
+func NewVideo(id, title string, prevVideo *Video, c *Client) *Video {
 	return &Video{
+		client:    c,
 		id:        id,
+		title:     title,
 		prevVideo: prevVideo,
 	}
 }
@@ -18,19 +21,14 @@ func (v *Video) URL() string {
 }
 
 func (v *Video) Next() *Video {
-	if v.nextVideo == nil {
-		// TODO: 次のビデオをここでスクレイピングする
-		// 見つからなければnilを返す
-		v.nextVideo = NewVideo(v.id, v)
-	}
-	return v.nextVideo
+	// TODO: 次のビデオをここでスクレイピングする
+	// 見つからなければnilを返す
+	return NewVideo(v.id, v.title, v, v.client)
 }
 
 func (v *Video) Prev() *Video {
 	return v.prevVideo
 }
-
-// TODO: 関連動画とかもあるといいかも
 
 type Videos []*Video
 

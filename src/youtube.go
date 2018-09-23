@@ -1,34 +1,69 @@
-package youtube
+package youtubeid
 
 import (
-	"net/url"
+	"net/http"
 
-	"github.com/PuerkitoBio/goquery"
+	"google.golang.org/api/googleapi/transport"
+	youtube "google.golang.org/api/youtube/v3"
 )
 
 type Client struct {
-	videos Videos
+	service *youtube.Service
+	getMax  int64
 }
 
-func NewClient(query string) *Client {
-	c := &Client{}
-	encoded := url.QueryEscape(query)
-	doc, err := goquery.NewDocument("https://www.youtube.com/results?search_query=" + encoded + "&sp=EgIQAQ%253D%253D")
+func NewClient(key string, max int64) *Client {
+	c := &Client{getMax: max}
+
+	client := &http.Client{
+		Transport: &transport.APIKey{Key: key},
+	}
+
+	var err error
+	c.service, err = youtube.New(client)
 	if err != nil {
 		panic(err)
 	}
 
-	selection := doc.Find("h3 a")
-	selection.Each(func(index int, s *goquery.Selection) {
-		if id, ok := s.Attr("href"); ok {
-			// "/watch?v="を切り取る
-			id = id[9:]
-			c.videos = append(c.videos, NewVideo(id, nil))
-		}
-	})
 	return c
 }
 
-func (c *Client) GetVideos() Videos {
-	return c.videos
+func (c *Client) GetVideos(query string) Videos {
+	videos := Videos{}
+	call := c.service.Search.List("id,snippet").
+		Q(query).
+		MaxResults(c.getMax).
+		Type("video")
+	response, err := call.Do()
+	if err != nil {
+		panic(err)
+	}
+
+	for _, item := range response.Items {
+		switch item.Id.Kind {
+		case "youtube#video":
+			videos = append(videos, NewVideo(item.Id.VideoId, item.Snippet.Title, nil, c))
+		}
+	}
+	return videos
+}
+
+func (c *Client) GetRelatedVideos(v *Video) Videos {
+	videos := Videos{}
+	call := c.service.Search.List("id,snippet").
+		RelatedToVideoId(v.id).
+		MaxResults(c.getMax).
+		Type("video")
+	response, err := call.Do()
+	if err != nil {
+		panic(err)
+	}
+
+	for _, item := range response.Items {
+		switch item.Id.Kind {
+		case "youtube#video":
+			videos = append(videos, NewVideo(item.Id.VideoId, item.Snippet.Title, v, c))
+		}
+	}
+	return videos
 }
