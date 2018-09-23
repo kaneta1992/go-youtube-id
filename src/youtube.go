@@ -23,7 +23,8 @@ func NewClient(query string) *Client {
 		if id, ok := s.Attr("href"); ok {
 			// "/watch?v="を切り取る
 			id = id[9:]
-			c.videos = append(c.videos, NewVideo(id, nil))
+			title := s.Text()
+			c.videos = append(c.videos, NewVideo(id, title, nil))
 		}
 	})
 	return c
